@@ -3,8 +3,10 @@ import { View, Text, TouchableOpacity } from "react-native";
 import AntDesign from "@expo/vector-icons/AntDesign";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
-export const Navbar = ({ isHome = false, isCameraScreen = false }) => {
+export const Navbar = ({ redirectTo, isHome = false, children }) => {
     const navigate = useNavigation();
+
+    console.log(redirectTo);
 
     return (
         <View
@@ -15,18 +17,10 @@ export const Navbar = ({ isHome = false, isCameraScreen = false }) => {
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                gap: 20,
+                gap: 10,
             }}
         >
-            {isCameraScreen && (
-                <TouchableOpacity onPress={() => navigate.navigate("AddUser")}>
-                    <Ionicons
-                        name="arrow-back-outline"
-                        size={24}
-                        color="white"
-                    />
-                </TouchableOpacity>
-            )}
+            {children}
             <Text
                 style={{
                     fontFamily: "monospace",
@@ -40,8 +34,7 @@ export const Navbar = ({ isHome = false, isCameraScreen = false }) => {
 
             {isHome && (
                 <TouchableOpacity
-                    onPress={() => navigate.navigate("AddUser")}
-                    style={{ marginLeft: 25 }}
+                    onPress={() => navigate.navigate("AddUser", {})}
                 >
                     <AntDesign name="adduser" size={24} color="white" />
                 </TouchableOpacity>

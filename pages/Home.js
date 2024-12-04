@@ -5,44 +5,54 @@ import {
     TouchableOpacity,
     FlatList,
     StyleSheet,
+    Text,
 } from "react-native";
 import { Navbar } from "../components/Navbar";
 import { UserItem } from "../components/UserItem";
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
 
 export const Home = () => {
-    const users = [
-        {
-            email: "user1@example.com",
-            password: "password123",
-            image: "https://www.w3schools.com/w3images/avatar2.png",
-        },
-        {
-            email: "user2@example.com",
-            password: "password456",
-            image: "https://www.w3schools.com/w3images/avatar2.png",
-        },
-        {
-            email: "user3@example.com",
-            password: "password789",
-            image: "https://www.w3schools.com/w3images/avatar2.png",
-        },
-        {
-            email: "user4@example.com",
-            password: "password000",
-            image: "https://www.w3schools.com/w3images/avatar2.png",
-        },
-        {
-            email: "user5@example.com",
-            password: "passwordabc",
-            image: "https://www.w3schools.com/w3images/avatar2.png",
-        },
-    ];
+    const [users, setUsers] = useState([]);
+    const [filteredUsers, setFilteredUsers] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const navigate = useNavigation();
 
-    const handleSearchChange = (text) => {};
+    useEffect(() => {
+        axios
+            .get("https://finals-eldroid-server.vercel.app/")
+            .then((response) => {
+                setUsers(response.data);
+                setFilteredUsers(response.data);
+                setIsLoading(false);
+            })
+            .catch((error) => {
+                setIsLoading(false);
+            });
+    }, []);
+
+    console.log(users);
+    const handleSearchChange = (text) => {
+        setFilteredUsers(
+            users.filter((user) =>
+                user.email.toLowerCase().includes(text.toLowerCase())
+            )
+        );
+    };
+
     return (
         <SafeAreaView style={styles.container}>
-            <Navbar isHome />
+            <Navbar isHome>
+                <TouchableOpacity onPress={() => navigate.navigate("Login")}>
+                    <Ionicons
+                        name="arrow-back-outline"
+                        size={24}
+                        color="white"
+                    />
+                </TouchableOpacity>
+            </Navbar>
 
             <View style={{ padding: 15, flex: 1, gap: 10 }}>
                 <View
@@ -78,10 +88,39 @@ export const Home = () => {
                         borderRadius: 15,
                     }}
                 >
-                    <FlatList
-                        data={users}
-                        renderItem={({ item }) => <UserItem item={item} />}
-                    />
+                    {isLoading ? (
+                        <View
+                            style={{
+                                width: "100%",
+                                flex: 1,
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontFamily: "monospace",
+                                    fontSize: 20,
+                                }}
+                            >
+                                Loading..
+                            </Text>
+                        </View>
+                    ) : (
+                        <FlatList
+                            data={filteredUsers}
+                            renderItem={({ item }) => (
+                                <UserItem
+                                    item={item}
+                                    onPress={() =>
+                                        navigate.navigate("Profile", {
+                                            user: item,
+                                        })
+                                    }
+                                />
+                            )}
+                        />
+                    )}
                 </View>
             </View>
         </SafeAreaView>

@@ -2,14 +2,36 @@ import { TextInput, StyleSheet, View, Text, Button } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useEffect } from "react";
 import { Navbar } from "../components/Navbar";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 export const Login = ({ navigation }) => {
-    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [users, setUsers] = useState();
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleLogin = () => {
+        // setIsSubmitting(true);
+
+        // axios
+        //     .post("https://finals-eldroid-server.vercel.app/login", {
+        //         email: email,
+        //         password: password,
+        //     })
+        //     .then((response) => {
+        //         console.log(response.data);
+        //         setIsSubmitting(false);
+        //         navigation.navigate("Home");
+        //     })
+        //     .catch((error) => {
+        //         if (error instanceof AxiosError) {
+        //             alert(error.response.data.error);
+        //         }
+        //         setIsSubmitting(false);
+
+        //
+        //     });
+
         navigation.navigate("Home");
     };
 
@@ -34,9 +56,9 @@ export const Login = ({ navigation }) => {
                     }}
                 >
                     <TextInput
-                        onChangeText={setUsername}
+                        onChangeText={setEmail}
                         style={styles.input}
-                        placeholder="Enter username"
+                        placeholder="Enter email"
                     ></TextInput>
 
                     <TextInput
@@ -46,7 +68,11 @@ export const Login = ({ navigation }) => {
                         placeholder="Enter password"
                     ></TextInput>
 
-                    <Button title="Login" onPress={handleLogin} />
+                    <Button
+                        title="Login"
+                        onPress={handleLogin}
+                        disabled={isSubmitting}
+                    />
                 </View>
             </View>
         </SafeAreaView>

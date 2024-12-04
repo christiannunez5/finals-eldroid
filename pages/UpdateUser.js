@@ -14,61 +14,61 @@ import { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { Ionicons } from "@expo/vector-icons";
 
-export const AddUser = ({ route }) => {
-    const { user } = route?.params || {};
-
-    const [newUser, setNewUser] = useState({
-        email: user ? user.email : "",
-        password: user ? user.password : "",
-        confirmPassword: user ? user.confirmPassword : "",
-        image: user ? user.image : "",
-    });
-
-    const handleInputChange = (key, value) => {
-        setNewUser((prev) => ({ ...prev, [key]: value }));
-    };
+export const UpdateUser = ({ route }) => {
+    const { user } = route.params;
 
     const navigate = useNavigation();
+
+    const [email, setEmail] = useState(user.email);
+    const [password, setPassword] = useState(user.password);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    console.log(user);
     const handleSubmit = () => {
         setIsSubmitting(true);
+        const data = {
+            email: email,
+            password: password,
+            image: user.image ? user.image : "",
+        };
 
-        const error = validateUser(newUser);
+        const error = validateUser(data);
+
         if (error) {
             alert(error);
             setIsSubmitting(false);
             return;
         }
-        
+
         axios
-            .post("https://finals-eldroid-server.vercel.app/register", newUser)
+            .post(`http://localhost:8080/update/${user._id}`, data)
             .then((response) => {
                 alert(response.data.message);
                 setIsSubmitting(false);
-                navigate.navigate("Home");
+                const updatedUser = response.data.data;
+                console.log(updatedUser);
+                navigate.navigate("Profile", { user: updatedUser });
             })
             .catch((error) => {
-                setIsSubmitting(false);
                 if (error instanceof AxiosError) {
-                    console.log(error.response.data);
-                    // alert(error.response.data.error);
+                    alert(error.response.data.error);
+                } else {
+                    console.error("Unexpected error:", error);
                 }
+                setIsSubmitting(false);
             });
     };
 
-    const validateUser = ({ email, password, confirmPassword }) => {
-        if (!email || !password || !confirmPassword) {
+    const validateUser = ({ email, password }) => {
+        if (!email || !password) {
             return "Please fill in all fields.";
-        }
-        if (password !== confirmPassword) {
-            return "Passwords do not match.";
-        }
-        if (!isValidEmail(email)) {
+        } else if (!isValidEmail(email)) {
             return "Please enter a valid email address.";
         }
         return null;
     };
+
+    console.log("user: ", user);
 
     const isValidEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -78,7 +78,9 @@ export const AddUser = ({ route }) => {
     return (
         <SafeAreaView style={styles.container}>
             <Navbar>
-                <TouchableOpacity onPress={() => navigate.navigate("Home")}>
+                <TouchableOpacity
+                    onPress={() => navigate.navigate("Profile", { user })}
+                >
                     <Ionicons
                         name="arrow-back-outline"
                         size={24}
@@ -89,16 +91,14 @@ export const AddUser = ({ route }) => {
 
             <View style={styles.form}>
                 <TouchableOpacity
-                    onPress={() =>
-                        navigate.navigate("Camera", { user: newUser })
-                    }
+                    onPress={() => navigate.navigate("Camera", { user })}
                     style={{ position: "relative", zIndex: 0 }}
                 >
                     <Image
                         style={styles.image}
                         source={{
-                            uri: newUser.image
-                                ? `data:image/jpeg;base64,${newUser.image}`
+                            uri: user.image
+                                ? user.image
                                 : "https://www.w3schools.com/w3images/avatar2.png",
                         }}
                     />
@@ -120,32 +120,21 @@ export const AddUser = ({ route }) => {
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter email"
-                    onChangeText={(text) => handleInputChange("email", text)}
-                    value={newUser.email}
+                    placeholder="Enter new email"
+                    onChangeText={setEmail}
+                    value={email}
                 ></TextInput>
 
                 <TextInput
                     style={styles.input}
-                    placeholder="Enter password"
+                    placeholder="Enter new password"
                     secureTextEntry
-                    value={newUser.password}
-                    onChangeText={(text) => handleInputChange("password", text)}
-                ></TextInput>
-
-                <TextInput
-                    style={styles.input}
-                    secureTextEntry
-                    value={newUser.confirmPassword}
-                    placeholder="Enter confirm password"
-                    onChangeText={(text) =>
-                        handleInputChange("confirmPassword", text)
-                    }
+                    onChangeText={setPassword}
+                    value={password}
                 ></TextInput>
 
                 <View
                     style={{
-                        flexDirection: "row",
                         display: "flex",
                         width: "100%",
                         alignItems: "center",
@@ -154,7 +143,7 @@ export const AddUser = ({ route }) => {
                     }}
                 >
                     <Button
-                        title="Save"
+                        title="Update"
                         style={styles.submit__button}
                         textStyle={{ color: "white" }}
                         onPress={handleSubmit}
@@ -164,7 +153,7 @@ export const AddUser = ({ route }) => {
                         title="Cancel"
                         style={styles.cancel__button}
                         textStyle={{ color: "white" }}
-                        onPress={() => navigate.navigate("Home")}
+                        onPress={() => navigate.navigate("Profile", { user })}
                     />
                 </View>
             </View>
@@ -192,14 +181,14 @@ const styles = StyleSheet.create({
     submit__button: {
         padding: 10,
         borderRadius: 8,
-        width: "50%",
+        width: "100%",
         backgroundColor: "#4CAF50",
     },
     cancel__button: {
         padding: 10,
         borderRadius: 8,
         backgroundColor: "#F44336",
-        width: "50%",
+        width: "100%",
     },
 
     input: {

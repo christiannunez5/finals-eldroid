@@ -1,4 +1,3 @@
-import { View, Text } from "react-native";
 import * as React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -6,6 +5,8 @@ import { Login } from "./pages/Login";
 import { Home } from "./pages/Home";
 import { AddUser } from "./pages/AddUser";
 import { CameraScreen } from "./pages/CameraScreen";
+import { UpdateUser } from "./pages/UpdateUser";
+import { Profile } from "./pages/Profile";
 
 const Stack = createNativeStackNavigator();
 
@@ -34,6 +35,16 @@ export default function App() {
                 <Stack.Screen
                     name="Camera"
                     component={CameraScreen}
+                    options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="UpdateUser"
+                    component={UpdateUser}
+                    options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="Profile"
+                    component={Profile}
                     options={{ headerShown: false }}
                 />
             </Stack.Navigator>
