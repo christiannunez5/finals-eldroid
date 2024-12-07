@@ -17,7 +17,7 @@ export const UserItem = ({ item, onPress }) => {
                 style={{ height: 50, width: 50, borderRadius: 100 }}
                 source={{
                     uri: item.image
-                        ? item.image
+                        ? `http://192.168.1.10:8080/images/${item.image}`
                         : "https://www.w3schools.com/w3images/avatar2.png",
                 }}
             />

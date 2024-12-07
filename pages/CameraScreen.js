@@ -30,12 +30,13 @@ export const CameraScreen = ({ route }) => {
     const takePic = async () => {
         if (camera) {
             const options = {
-                base64: true,
+                quality: 0.5,
                 exif: false,
             };
             const newPhoto = await camera.takePictureAsync(options);
-            const base64Image = newPhoto.base64;
-            setImage(base64Image);
+
+            console.log(newPhoto.uri);
+            setImage(newPhoto.uri);
         }
     };
 
@@ -45,6 +46,7 @@ export const CameraScreen = ({ route }) => {
             image: image ? image : user.image,
         };
 
+        console.log("updated user: ", updatedUser);
         navigate.navigate(
             user.confirmPassword !== undefined ? "AddUser" : "UpdateUser", // Conditional route name
             { user: updatedUser }
@@ -103,7 +105,7 @@ export const CameraScreen = ({ route }) => {
                         <Image
                             style={styles.image}
                             source={{
-                                uri: `data:image/jpeg;base64,${image}`,
+                                uri: image,
                             }}
                         />
 

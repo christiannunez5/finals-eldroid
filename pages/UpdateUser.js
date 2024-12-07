@@ -10,12 +10,15 @@ import {
 import { Button } from "../components/Button";
 import { useNavigation } from "@react-navigation/native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios, { AxiosError } from "axios";
 import { Ionicons } from "@expo/vector-icons";
+import { API_URL } from "../constants";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 export const UpdateUser = ({ route }) => {
     const { user } = route.params;
+    const [userImage, setUserImage] = useState(user.image);
 
     const navigate = useNavigation();
 
@@ -23,15 +26,24 @@ export const UpdateUser = ({ route }) => {
     const [password, setPassword] = useState(user.password);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    console.log(user);
-    const handleSubmit = () => {
+    const image = () => {
+        if (userImage.includes("file://")) {
+            return userImage;
+        }
+
+        return `${API_URL}/images/${userImage}`;
+    };
+
+    console.log("user image:", userImage);
+    const handleSubmit = async () => {
         setIsSubmitting(true);
+
+        console.log("submitted!");
+
         const data = {
             email: email,
             password: password,
-            image: user.image ? user.image : "",
         };
-
         const error = validateUser(data);
 
         if (error) {
@@ -40,14 +52,38 @@ export const UpdateUser = ({ route }) => {
             return;
         }
 
+        const formData = new FormData();
+
+        formData.append("email", email);
+        formData.append("password", password);
+
+        if (!userImage) {
+            console.log("No image, removing profile picture");
+            formData.append("removeImage", "true");
+        } else if (userImage.includes("file://")) {
+            console.log("Uploading new image");
+            formData.append("image", {
+                uri: userImage,
+                type: "image/jpeg",
+                name: "image.jpg",
+            });
+        } else {
+            console.log("Keeping existing image");
+        }
+
+        setIsSubmitting(false);
+        console.log("step 2");
         axios
-            .post(`http://localhost:8080/update/${user._id}`, data)
+            .post(`${API_URL}/update/${user._id}`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
             .then((response) => {
                 alert(response.data.message);
                 setIsSubmitting(false);
                 const updatedUser = response.data.data;
-                console.log(updatedUser);
-                navigate.navigate("Profile", { user: updatedUser });
+                navigate.navigate("Profile", { id: updatedUser._id });
             })
             .catch((error) => {
                 if (error instanceof AxiosError) {
@@ -68,8 +104,6 @@ export const UpdateUser = ({ route }) => {
         return null;
     };
 
-    console.log("user: ", user);
-
     const isValidEmail = (email) => {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
@@ -79,7 +113,9 @@ export const UpdateUser = ({ route }) => {
         <SafeAreaView style={styles.container}>
             <Navbar>
                 <TouchableOpacity
-                    onPress={() => navigate.navigate("Profile", { user })}
+                    onPress={() =>
+                        navigate.navigate("Profile", { id: user._id })
+                    }
                 >
                     <Ionicons
                         name="arrow-back-outline"
@@ -90,33 +126,65 @@ export const UpdateUser = ({ route }) => {
             </Navbar>
 
             <View style={styles.form}>
-                <TouchableOpacity
+                <View
                     onPress={() => navigate.navigate("Camera", { user })}
                     style={{ position: "relative", zIndex: 0 }}
                 >
+                    {userImage && (
+                        <TouchableOpacity
+                            onPress={() => setUserImage("")}
+                            style={{
+                                position: "absolute",
+                                right: 10,
+                                top: 10,
+                                height: 30,
+                                width: 30,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: 100,
+                                backgroundColor: "red",
+                                zIndex: 100,
+                            }}
+                        >
+                            <AntDesign
+                                name="close"
+                                size={24}
+                                color="white"
+                                style={{ marginLeft: 1 }}
+                            />
+                        </TouchableOpacity>
+                    )}
+
                     <Image
                         style={styles.image}
                         source={{
-                            uri: user.image
-                                ? user.image
+                            uri: userImage
+                                ? image()
                                 : "https://www.w3schools.com/w3images/avatar2.png",
                         }}
                     />
-                    <MaterialIcons
-                        name="add-a-photo"
-                        size={30}
-                        color="black"
+
+                    <TouchableOpacity
+                        onPress={() => {
+                            navigate.navigate("Camera", { user });
+                        }}
                         style={{
                             position: "absolute",
                             bottom: 15,
                             right: 10,
-                            zIndex: 300,
                             backgroundColor: "white",
                             padding: 10,
                             borderRadius: 100,
                         }}
-                    />
-                </TouchableOpacity>
+                    >
+                        <MaterialIcons
+                            name="add-a-photo"
+                            size={30}
+                            color="black"
+                        />
+                    </TouchableOpacity>
+                </View>
 
                 <TextInput
                     style={styles.input}
@@ -147,13 +215,14 @@ export const UpdateUser = ({ route }) => {
                         style={styles.submit__button}
                         textStyle={{ color: "white" }}
                         onPress={handleSubmit}
-                        disabled={isSubmitting}
                     />
                     <Button
                         title="Cancel"
                         style={styles.cancel__button}
                         textStyle={{ color: "white" }}
-                        onPress={() => navigate.navigate("Profile", { user })}
+                        onPress={() =>
+                            navigate.navigate("Profile", { id: user._id })
+                        }
                     />
                 </View>
             </View>

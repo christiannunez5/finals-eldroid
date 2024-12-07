@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
+import { API_URL } from "../constants";
 
 export const Home = () => {
     const [users, setUsers] = useState([]);
@@ -22,7 +23,7 @@ export const Home = () => {
 
     useEffect(() => {
         axios
-            .get("https://finals-eldroid-server.vercel.app/")
+            .get(API_URL)
             .then((response) => {
                 setUsers(response.data);
                 setFilteredUsers(response.data);
@@ -33,7 +34,6 @@ export const Home = () => {
             });
     }, []);
 
-    console.log(users);
     const handleSearchChange = (text) => {
         setFilteredUsers(
             users.filter((user) =>
@@ -114,7 +114,7 @@ export const Home = () => {
                                     item={item}
                                     onPress={() =>
                                         navigate.navigate("Profile", {
-                                            user: item,
+                                            id: item._id,
                                         })
                                     }
                                 />

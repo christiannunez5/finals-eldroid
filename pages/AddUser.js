@@ -13,6 +13,8 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { Ionicons } from "@expo/vector-icons";
+import { API_URL } from "../constants";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
 export const AddUser = ({ route }) => {
     const { user } = route?.params || {};
@@ -31,7 +33,7 @@ export const AddUser = ({ route }) => {
     const navigate = useNavigation();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setIsSubmitting(true);
 
         const error = validateUser(newUser);
@@ -40,9 +42,28 @@ export const AddUser = ({ route }) => {
             setIsSubmitting(false);
             return;
         }
-        
+
+        const imageData = {
+            uri: newUser.image,
+            type: "image/jpeg",
+            name: "image.jpg",
+        };
+
+        const formData = new FormData();
+
+        formData.append("email", newUser.email);
+        formData.append("password", newUser.password);
+
+        if (newUser.image) {
+            formData.append("image", imageData);
+        }
+
         axios
-            .post("https://finals-eldroid-server.vercel.app/register", newUser)
+            .post(`${API_URL}/register`, formData, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            })
             .then((response) => {
                 alert(response.data.message);
                 setIsSubmitting(false);
@@ -51,9 +72,9 @@ export const AddUser = ({ route }) => {
             .catch((error) => {
                 setIsSubmitting(false);
                 if (error instanceof AxiosError) {
-                    console.log(error.response.data);
-                    // alert(error.response.data.error);
+                    alert(error.response.data.error);
                 }
+                console.log(error.message);
             });
     };
 
@@ -88,24 +109,47 @@ export const AddUser = ({ route }) => {
             </Navbar>
 
             <View style={styles.form}>
-                <TouchableOpacity
-                    onPress={() =>
-                        navigate.navigate("Camera", { user: newUser })
-                    }
-                    style={{ position: "relative", zIndex: 0 }}
-                >
+                <View style={{ position: "relative", zIndex: 0 }}>
                     <Image
                         style={styles.image}
                         source={{
                             uri: newUser.image
-                                ? `data:image/jpeg;base64,${newUser.image}`
+                                ? newUser.image
                                 : "https://www.w3schools.com/w3images/avatar2.png",
                         }}
                     />
-                    <MaterialIcons
-                        name="add-a-photo"
-                        size={30}
-                        color="black"
+
+                    {newUser.image && (
+                        <TouchableOpacity
+                            onPress={() =>
+                                setNewUser((prev) => ({ ...prev, image: "" }))
+                            }
+                            style={{
+                                position: "absolute",
+                                right: 10,
+                                top: 10,
+                                height: 30,
+                                width: 30,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                borderRadius: 100,
+                                backgroundColor: "red",
+                            }}
+                        >
+                            <AntDesign
+                                name="close"
+                                size={24}
+                                color="white"
+                                style={{ marginLeft: 1 }}
+                            />
+                        </TouchableOpacity>
+                    )}
+
+                    <TouchableOpacity
+                        onPress={() => {
+                            navigate.navigate("Camera", { user: newUser });
+                        }}
                         style={{
                             position: "absolute",
                             bottom: 15,
@@ -115,8 +159,14 @@ export const AddUser = ({ route }) => {
                             padding: 10,
                             borderRadius: 100,
                         }}
-                    />
-                </TouchableOpacity>
+                    >
+                        <MaterialIcons
+                            name="add-a-photo"
+                            size={30}
+                            color="black"
+                        />
+                    </TouchableOpacity>
+                </View>
 
                 <TextInput
                     style={styles.input}
@@ -158,7 +208,6 @@ export const AddUser = ({ route }) => {
                         style={styles.submit__button}
                         textStyle={{ color: "white" }}
                         onPress={handleSubmit}
-                        disabled={isSubmitting}
                     />
                     <Button
                         title="Cancel"
