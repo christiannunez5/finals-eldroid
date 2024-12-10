@@ -20,7 +20,7 @@ export const Profile = ({ route }) => {
             setUser(response.data);
             setIsLoading(false);
         });
-    }, []);
+    }, [id]);
 
     return (
         <SafeAreaView style={{ flex: 1 }}>
@@ -65,7 +65,7 @@ export const Profile = ({ route }) => {
                         style={styles.image}
                         source={{
                             uri: user.image
-                                ? `http://192.168.1.10:8080/images/${user.image}`
+                                ? `${API_URL}/images/${user.image}`
                                 : "https://www.w3schools.com/w3images/avatar2.png",
                         }}
                     />

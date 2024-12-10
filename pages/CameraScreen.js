@@ -1,55 +1,47 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Navbar } from "../components/Navbar";
-import { StyleSheet, TouchableOpacity, View, Image } from "react-native";
-import { Camera, CameraView } from "expo-camera";
+import { StyleSheet, TouchableOpacity, View, Image, Text } from "react-native";
 import { useEffect, useState } from "react";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
 import { useNavigation } from "@react-navigation/native";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import * as ImagePicker from "expo-image-picker";
 
 export const CameraScreen = ({ route }) => {
     const { user } = route.params;
-    const [camera, setCamera] = useState(null);
     const navigate = useNavigation();
     const [image, setImage] = useState(null);
     const [, setHasPermission] = useState();
 
-    const [isFront, setIsFront] = useState(false);
-
     useEffect(() => {
         const requestPermissions = async () => {
-            const cameraPermission =
-                await Camera.requestCameraPermissionsAsync();
-            setHasPermission(cameraPermission.status === "granted");
+            const { status } =
+                await ImagePicker.requestCameraPermissionsAsync();
+            setHasPermission(status === "granted");
+            if (status === "granted") {
+                openCamera();
+            }
         };
 
         requestPermissions();
     }, []);
+    
+    const openCamera = async () => {
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: false,
+            quality: 1,
+        });
 
-    const takePic = async () => {
-        if (camera) {
-            const options = {
-                quality: 0.5,
-                exif: false,
-            };
-            const newPhoto = await camera.takePictureAsync(options);
-
-            console.log(newPhoto.uri);
-            setImage(newPhoto.uri);
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
         }
     };
 
     const navigateTo = () => {
-        const updatedUser = {
-            ...user,
-            image: image ? image : user.image,
-        };
-
-        console.log("updated user: ", updatedUser);
         navigate.navigate(
-            user.confirmPassword !== undefined ? "AddUser" : "UpdateUser", // Conditional route name
-            { user: updatedUser }
+            user.confirmPassword !== undefined ? "AddUser" : "UpdateUser",
+            { user: user, image: image }
         );
     };
 
@@ -64,42 +56,10 @@ export const CameraScreen = ({ route }) => {
                     />
                 </TouchableOpacity>
             </Navbar>
+
             <View style={{ flex: 1 }}>
                 {!image ? (
-                    <CameraView
-                        ref={(ref) => setCamera(ref)}
-                        style={styles.camera}
-                        facing={isFront ? "front" : "back"}
-                        ratio={"1:1"}
-                    >
-                        <View
-                            style={{
-                                width: "100%",
-                                display: "flex",
-                                position: "absolute",
-                                bottom: 20,
-                                flexDirection: "row",
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <TouchableOpacity
-                                style={{ marginRight: 15 }}
-                                onPress={() => setIsFront(!isFront)}
-                            >
-                                <AntDesign
-                                    name="swap"
-                                    size={30}
-                                    color="white"
-                                />
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={styles.button}
-                                onPress={takePic}
-                            ></TouchableOpacity>
-                        </View>
-                    </CameraView>
+                    <View style={styles.cameraOptions}></View>
                 ) : (
                     <View style={{ flex: 1, position: "relative" }}>
                         <Image
@@ -143,20 +103,20 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
     },
-    camera: {
+    cameraOptions: {
         flex: 1,
-        position: "relative",
+        justifyContent: "center",
         alignItems: "center",
-        backgroundColor: "red",
     },
-    button: {
-        width: 80, // Set the width of the button
-        height: 80, // Set the height of the button to be equal to width for a perfect circle
-        borderRadius: 40, // Half of the width and height to make it a circle
-        backgroundColor: "white", // Set background color to white (you can change it)
-        borderWidth: 5, // Border width for a more prominent button
-        borderColor: "#000",
-        marginRight: 30,
+    optionButton: {
+        padding: 20,
+        marginBottom: 20,
+        backgroundColor: "#007bff",
+        borderRadius: 10,
+    },
+    optionText: {
+        color: "white",
+        fontSize: 18,
     },
     image: {
         flex: 1,

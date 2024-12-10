@@ -1,4 +1,5 @@
 import { TouchableOpacity, Text, Image } from "react-native";
+import { API_URL } from "../constants";
 
 export const UserItem = ({ item, onPress }) => {
     return (
@@ -17,7 +18,7 @@ export const UserItem = ({ item, onPress }) => {
                 style={{ height: 50, width: 50, borderRadius: 100 }}
                 source={{
                     uri: item.image
-                        ? `http://192.168.1.10:8080/images/${item.image}`
+                        ? `${API_URL}/images/${item.image}`
                         : "https://www.w3schools.com/w3images/avatar2.png",
                 }}
             />

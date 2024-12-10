@@ -15,15 +15,17 @@ import axios, { AxiosError } from "axios";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL } from "../constants";
 import AntDesign from "@expo/vector-icons/AntDesign";
+import * as ImagePicker from "expo-image-picker";
 
 export const AddUser = ({ route }) => {
     const { user } = route?.params || {};
+
+    const [image, setImage] = useState("");
 
     const [newUser, setNewUser] = useState({
         email: user ? user.email : "",
         password: user ? user.password : "",
         confirmPassword: user ? user.confirmPassword : "",
-        image: user ? user.image : "",
     });
 
     const handleInputChange = (key, value) => {
@@ -31,15 +33,27 @@ export const AddUser = ({ route }) => {
     };
 
     const navigate = useNavigation();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const openCamera = async () => {
+        const result = await ImagePicker.launchCameraAsync({
+            mediaTypes: "images",
+            allowsEditing: true,
+            quality: 1,
+        });
 
+        if (!result.canceled) {
+            setImage(result.assets[0].uri);
+        }
+
+        setUpdatedUser((prev) => ({
+            ...prev,
+        }));
+    };
     const handleSubmit = async () => {
-        setIsSubmitting(true);
-
         const error = validateUser(newUser);
         if (error) {
             alert(error);
-            setIsSubmitting(false);
+
             return;
         }
 
@@ -66,11 +80,9 @@ export const AddUser = ({ route }) => {
             })
             .then((response) => {
                 alert(response.data.message);
-                setIsSubmitting(false);
                 navigate.navigate("Home");
             })
             .catch((error) => {
-                setIsSubmitting(false);
                 if (error instanceof AxiosError) {
                     alert(error.response.data.error);
                 }
@@ -113,8 +125,8 @@ export const AddUser = ({ route }) => {
                     <Image
                         style={styles.image}
                         source={{
-                            uri: newUser.image
-                                ? newUser.image
+                            uri: image
+                                ? image
                                 : "https://www.w3schools.com/w3images/avatar2.png",
                         }}
                     />
@@ -147,9 +159,7 @@ export const AddUser = ({ route }) => {
                     )}
 
                     <TouchableOpacity
-                        onPress={() => {
-                            navigate.navigate("Camera", { user: newUser });
-                        }}
+                        onPress={openCamera}
                         style={{
                             position: "absolute",
                             bottom: 15,

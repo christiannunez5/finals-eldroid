@@ -10,21 +10,23 @@ export const Login = ({ navigation }) => {
     const [password, setPassword] = useState("");
 
     const handleLogin = () => {
-        axios
-            .post(`${API_URL}/login`, {
-                email: email,
-                password: password,
-            })
-            .then((response) => {
-                console.log(response.data);
-                navigation.navigate("Home");
-            })
-            .catch((error) => {
-                if (error instanceof AxiosError) {
-                    alert(error.response.data.error);
-                }
-                console.log(error);
-            });
+        // axios
+        //     .post(`${API_URL}/login`, {
+        //         email: email,
+        //         password: password,
+        //     })
+        //     .then((response) => {
+        //         console.log(response.data);
+        //         navigation.navigate("Home");
+        //     })
+        //     .catch((error) => {
+        //         if (error instanceof AxiosError) {
+        //             alert(error.response.data.error);
+        //         }
+        //         console.log(error);
+        //     });
+
+        navigation.navigate("Home");
     };
 
     return (
